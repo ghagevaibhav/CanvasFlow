@@ -1,0 +1,13 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "target": "ESNext",
+    "allowJs": true,
+    "esModuleInterop": true,
+    "moduleDetection": "force"
+  }
+}
