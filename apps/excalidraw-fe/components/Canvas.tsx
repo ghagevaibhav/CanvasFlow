@@ -1,4 +1,4 @@
-import initDraw from "@/Draw";
+import initDraw from "@/draw";
 import { useEffect, useRef } from "react";
 
 export default function Canvas({ roomId, socket }: { 
