@@ -62,7 +62,7 @@ const SignUp = () => {
                 Must be at least 8 characters with a number and a symbol
               </p>
             </div>
-            <div className="flex items-center space-x-2 pt-2">
+            {/* <div className="flex items-center space-x-2 pt-2">
               <Checkbox id="terms" className="data-[state=checked]:bg-app-blue" required />
               <label
                 htmlFor="terms"
@@ -77,8 +77,8 @@ const SignUp = () => {
                   Privacy Policy
                 </Link>
               </label>
-            </div>
-            <Button type="submit" className="w-full bg-app-blue hover:bg-app-blue/90 transition-all duration-300 mt-2 font-medium">
+            </div> */}
+            <Button type="submit" className="w-full bg-black text-white dark:bg-white dark:text-black hover:bg-black/90 transition-all duration-300 mt-2 font-medium">
               Create Account
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
