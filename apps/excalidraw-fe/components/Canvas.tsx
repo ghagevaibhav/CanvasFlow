@@ -21,4 +21,4 @@ export default function Canvas({ roomId, socket }: {
       height="100%" 
     />
   );
-}
+}   
