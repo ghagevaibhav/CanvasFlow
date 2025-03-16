@@ -38,6 +38,8 @@ class WebSocketManager {
 
   private async handleJoinRoom(ws: WebSocket, userId: string, roomId: number) {
     try {
+      if(!roomId || (roomId === null))
+          return;
       const room = await prisma.room.findUnique({
         where: { id: roomId },
       });
@@ -53,7 +55,7 @@ class WebSocketManager {
       }
 
       ws.send(JSON.stringify({ type: "join_success", roomId }));
-    } catch (err) {
+    } catch (err) { 
       console.error("Join room error:", err);
       ws.send(JSON.stringify({ error: "Failed to join room" }));
     }
