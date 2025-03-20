@@ -1,7 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { ThemeProvider as NextThemesProvider, type ThemeProviderProps } from "next-themes";
+import {
+  ThemeProvider as NextThemesProvider,
+  type ThemeProviderProps,
+} from "next-themes";
 
 type Theme = "dark" | "light";
 
@@ -17,13 +20,18 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
-type CustomThemeProviderProps = Omit<ThemeProviderProps, 'defaultTheme'> & {
+type CustomThemeProviderProps = Omit<ThemeProviderProps, "defaultTheme"> & {
   defaultTheme?: Theme;
 };
 
-export function ThemeProvider({ children, defaultTheme = "light", storageKey = "canvasflow-theme", ...props }: CustomThemeProviderProps) {
+export function ThemeProvider({
+  children,
+  defaultTheme = "light",
+  storageKey = "canvasflow-theme",
+  ...props
+}: CustomThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
-  
+
   useEffect(() => {
     // Only access localStorage on the client after initial render
     const savedTheme = localStorage.getItem(storageKey) as Theme;
@@ -34,7 +42,7 @@ export function ThemeProvider({ children, defaultTheme = "light", storageKey = "
 
   useEffect(() => {
     const root = window.document.documentElement;
-    
+
     root.classList.remove("light", "dark");
     root.classList.add(theme);
     localStorage.setItem(storageKey, theme);
@@ -47,7 +55,11 @@ export function ThemeProvider({ children, defaultTheme = "light", storageKey = "
 
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
-      <NextThemesProvider attribute="class" defaultTheme={defaultTheme} enableSystem>
+      <NextThemesProvider
+        attribute="class"
+        defaultTheme={defaultTheme}
+        enableSystem
+      >
         {children}
       </NextThemesProvider>
     </ThemeProviderContext.Provider>

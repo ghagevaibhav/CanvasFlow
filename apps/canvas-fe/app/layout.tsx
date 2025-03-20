@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import CustomCursor from "@/components/CustomCursor";
 import "@/app/globals.css";
+import { Providers } from "./providers";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -30,12 +31,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <ThemeProvider defaultTheme="light" storageKey="canvasflow-theme">
-          {children}
-          <Toaster />
-          <Sonner />
-          <CustomCursor />
-        </ThemeProvider>
+        <Providers>
+          <ThemeProvider defaultTheme="light" storageKey="canvasflow-theme">
+            {children}
+            <Toaster />
+            <Sonner />
+            <CustomCursor />
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );
