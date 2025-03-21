@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import axios from 'axios';
+import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,13 +18,34 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { User, Mail, Lock, ArrowRight, Github } from "lucide-react";
+import { BACKEND_URL } from '@/config/config';
 
 const SignUp = () => {
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // In a real app, you would handle registration here
-    // For now, we'll just redirect to sign-in
-    signIn(undefined, { callbackUrl: "/" });
+
+    try {
+      const response = await axios.post(`${BACKEND_URL}/user/signup`, {
+        name,
+        username: email,
+        password,
+      });
+
+      if (response.status === 201) {
+        console.log("User signed up successfully:", response.data);
+        window.location.href = "/dashboard";
+      } else {
+        setError(response.data.message || "Failed to sign up");
+      }
+    } catch (error) {
+      setError("An error occurred during signup. Please try again.");
+      console.error("Signup error:", error);
+    }
   };
 
   return (
@@ -50,6 +72,7 @@ const SignUp = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <form className="space-y-4" onSubmit={handleSubmit}>
+            {error && <p className="text-red-500">{error}</p>}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-foreground/80 w-lg">
                 Full name
@@ -62,6 +85,8 @@ const SignUp = () => {
                   placeholder="John Doe"
                   className="pl-10 transition-all"
                   required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
             </div>
@@ -78,6 +103,8 @@ const SignUp = () => {
                   placeholder="hello@example.com"
                   className="pl-10 transition-all"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </div>
@@ -93,6 +120,8 @@ const SignUp = () => {
                   type="password"
                   className="pl-10 transition-all"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
