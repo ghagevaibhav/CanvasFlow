@@ -1,8 +1,7 @@
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 const { JWT_SECRET } = await import("@repo/backend-common/index");
-const { prisma } = await import("@repo/db/index");
-
+import prisma  from "@repo/db/index";
 
 // singleton websocket manager
 class WebSocketManager {
