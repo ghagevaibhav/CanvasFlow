@@ -1,35 +1,68 @@
 import { JWT_SECRET } from "@repo/backend-common/index";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import prisma from "@repo/db/index";
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+interface DecodedToken {
+    id: string;
+    [key: string]: any;
+}
+
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = req.headers.authorization?.split(" ")[1]
+        const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+        
         if (!token) {
             res.status(401).json({
-                message: "Token is not provided!",
+                message: "Authentication required",
                 success: false
-            })
-            return
+            });
+            return;
         }
-        jwt.verify(token, JWT_SECRET, function (err, data) {
-            if (err) {
-                return res.status(401).json({
-                    message: "Unauthorized",
-                    success: false,
-                })
-            }
-            if (typeof data !== "string") {
-                req.userId = data?.id;
-                console.log(data)
-            }
-            next()
-        })
+
+        // verify token
+        const decoded = jwt.verify(token, JWT_SECRET) as DecodedToken;
+        console.log(decoded)
+        
+        // verify user exists in database
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.id },
+            select: { id: true, email: true, name: true }
+        });
+
+        if (!user) {
+            res.status(401).json({
+                message: "User not found",
+                success: false
+            });
+            return;
+        }
+
+        req.user = user;
+        next();
     } catch (error) {
-        console.log(error)
+        console.error("Authentication error:", error);
+        
+        if (error instanceof jwt.TokenExpiredError) {
+            res.status(401).json({
+                message: "Token expired",
+                success: false
+            });
+            return;
+        }
+        
+        if (error instanceof jwt.JsonWebTokenError) {
+            res.status(401).json({
+                message: "Invalid token",
+                success: false
+            });
+            return;
+        }
+
         res.status(500).json({
-            message: "Something went wrong server side",
+            message: "Internal server error",
             success: false
-        })
+        });
+        return;
     }
-}
+};

@@ -1,20 +1,21 @@
 import express from 'express';
-import { authMiddleware } from '../middleware/middleware.js';
 import { CreateRoomSchema } from '@repo/common/index';
-import { prisma } from '@repo/db/index';
+import prisma from '@repo/db/index';
+import { authMiddleware } from '../middleware/middleware.js';
 
 const roomRouter: express.Router = express.Router();
 
-roomRouter.post('/create', authMiddleware, async (req, res) => {
+roomRouter.use(authMiddleware);
+
+roomRouter.post('/create', async (req, res) => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
         console.error(parsedData.error);
         res.status(400).json({ message: 'Invalid input data' });
         return;
     }
-    try{
-        console.log('User ID:', req.userId);
-        const userId = req.userId;
+    try {
+        const userId = req.user?.id;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized' });
             return 
@@ -38,25 +39,21 @@ roomRouter.get('/chats/:roomId', async (req, res) => {
     const roomId = parseInt(req.params.roomId);
     if (isNaN(roomId)) {
         res.status(400).json({ message: 'Invalid room ID' });
-        return 
+        return;
     }
     try {
         const messages = await prisma.chat.findMany({
-            where: {
-                roomId: {
-                    equals: roomId
-                }
-            },
-            orderBy: {
-                id: 'desc'
-            },
+            where: { roomId: { equals: roomId } },
+            orderBy: { id: 'desc' },
             take: 100
         });
         res.json({messages: messages});
+        return;
     }
     catch(error) {
         console.error(error)
         res.status(500).json({ message: 'Something went wrong server side while fetching chats' });
+        return;
     }
 })
 
@@ -74,6 +71,7 @@ roomRouter.get('/:slug', async (req, res) => {
     catch(error){
         console.error(error)
         res.status(500).json({ message: 'Something went wrong server side' });
+        return;
     }
 })
 
