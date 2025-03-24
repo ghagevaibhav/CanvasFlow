@@ -2,65 +2,61 @@ import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { BACKEND_URL } from "@/config/config";
-import prisma from "@repo/db/index"
-import { PrismaAdapter } from '@auth/prisma-adapter'
+import prisma from "@repo/db/index";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 
+// import * as bcrypt from "bcrypt";
 
-import * as bcrypt from 'bcrypt'
+interface Credentials {
+  username: string; // or whatever fields you expect
+  password: string;
+}
+
+interface SignInParams {
+  user: {
+      id: string;
+      name: string;
+      email: string;
+  } | null;
+  account: {
+      provider: string;
+      type: string;
+  };
+  profile: {
+      id: string;
+      name: string;
+      email: string;
+  };
+  email?: string;
+  credentials?: Credentials;
+}
 
 // fn to generate a random password
-async function generateHashedRandomPassword(): Promise<string> {
-    const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-    let password = "";
-    for (let i = 0; i < 16; i++) {
-        const randomIndex = Math.floor(Math.random() * charset.length);
-        password += charset[randomIndex];
-    }
+// async function generateHashedRandomPassword(): Promise<string> {
+//   const charset =
+//     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+//   let password = "";
+//   for (let i = 0; i < 16; i++) {
+//     const randomIndex = Math.floor(Math.random() * charset.length);
+//     password += charset[randomIndex];
+//   }
 
-    const saltRounds = 10;
-    const hash = await bcrypt.hash(password, saltRounds);
-    return hash;
-}
+//   const saltRounds = 10;
+//   const hash = await bcrypt.hash(password, saltRounds);
+//   return hash;
+// }
 
-interface UserData {
-  id: string;
-  name: string;
-  password?: string;
-  email: string;
-  image: string | null;
-  emailVerified: Date | null;
-}
+// interface UserData {
+//   id: string;
+//   name: string;
+//   password?: string | null;
+//   email: string;
+//   image: string | null;
+//   emailVerified: Date | null;
+// }
 export const authOptions = {
   adapter: {
-    ...PrismaAdapter(prisma), 
-    createUser: async (data: UserData) => {
-      try {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: data.email },
-        });
-   
-        if (existingUser) {
-          throw new Error('Email already in use');
-          return;
-        }
-
-        if (!data.password) {
-          data.password = await generateHashedRandomPassword();
-        }
-        return await prisma.user.create({
-          data: {
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            image: data.image,
-            emailVerified: data.emailVerified,
-          }
-        });
-      } catch (error) {
-        console.error("Error creating user:", error);
-        throw new Error("Failed to create user");
-      }
-    }
+    ...PrismaAdapter(prisma)
   },
   providers: [
     CredentialsProvider({
@@ -70,14 +66,22 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const res = await fetch(`${BACKEND_URL}/user/signup`, {
-          method: "POST",
-          body: JSON.stringify(credentials),
-          headers: { "Content-Type": "application/json" },
+        // Check if credentials are provided
+        if (!credentials) {
+            console.error("No credentials provided");
+            return null; // Return null if credentials are not provided
+        }
+
+        console.log("Credentials:", credentials);
+        const res = await fetch(`${BACKEND_URL}/user/signin`, {
+            method: "POST",
+            body: JSON.stringify(credentials),
+            headers: { "Content-Type": "application/json" },
         });
+
         const user = await res.json();
         if (res.ok && user) {
-          return user;
+            return user; 
         }
         return null;
       },
@@ -103,9 +107,15 @@ export const authOptions = {
       }
       return Promise.resolve(url);
     },
-    // async session(session, user) {
-    //   session.user.id = user.id;
-    //   return session;
-    // },
+    async signIn({ user, account, profile, email, credentials }: SignInParams) {
+      console.log("User:", user);
+      console.log("Account:", account);
+      console.log("Profile:", profile);
+      console.log("Email:", email);
+      console.log("Credentials:", credentials);
+      
+      // You can add your custom logic here, e.g., validating the user
+      return true; // Return true if sign-in is successful
+    },
   },
 };
