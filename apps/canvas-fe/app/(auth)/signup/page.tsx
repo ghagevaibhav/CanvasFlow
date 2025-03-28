@@ -1,5 +1,5 @@
 "use client";
-import axios from 'axios';
+import axios from "axios";
 import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,12 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { User, Mail, Lock, ArrowRight } from "lucide-react";
-import { BACKEND_URL } from '@/config/config';
-import { toast } from 'sonner';
-import GoogleButton from '@/components/google-sign-up';
-import GithubButton from '@/components/github-sign-in';
-import { useRouter } from 'next/navigation';
+import { BACKEND_URL } from "@/config/config";
+import { toast } from "sonner";
+import GoogleButton from "@/components/google-sign-in";
+import GithubButton from "@/components/github-sign-in";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -28,34 +29,63 @@ const SignUp = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
- 
+  const [isLoading, setIsLoading] = useState(false);
+
+  // const validatePassword = (password: string) => {
+  //   const minLength = 8;
+  //   const hasNumber = /\d/.test(password);
+  //   const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  //   return password.length >= minLength && hasNumber && hasSymbol;
+  // };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('')
+    setIsLoading(true)
+
+    // if (!validatePassword(password)) {
+    //   setError('Password must be at least 8 characters with a number and symbol');
+    //   setIsLoading(false);
+    //   return;
+    // }
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/user/signup`, {
-        name,
-        username: email,
-        password,
-      }, {
-        withCredentials: true
-      });
+      const response = await axios.post(
+        `${BACKEND_URL}/user/signup`,
+        {
+          name,
+          email,
+          password,
+        },
+      );
 
       if (response.status === 201) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        router.push('/signin');
-        toast.success('Account created successfully!');
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+  
+        if (result?.ok) {
+          router.push('/dashboard');
+          toast.success('Account created successfully!');
+        } else {
+          throw new Error('Account created but login failed');
+        }
       }
-    } 
-    catch (error) {
-      if (axios.isAxiosError(error) ){
-        const errorMessage = error.response?.data?.message || "Signup failed. Please try again.";
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.message || "Signup failed. Please try again.";
         setError(errorMessage);
         toast.error(errorMessage);
       } else {
         setError("An unexpected error occurred.");
         toast.error("An unexpected error occurred.");
       }
+    }
+    finally{
+      setIsLoading(false)
     }
   };
 
@@ -166,11 +196,12 @@ const SignUp = () => {
               </label>
             </div>
             <Button
+              disabled={isLoading}
               type="submit"
               className="w-full bg-black text-white dark:bg-white dark:text-black hover:bg-black/90 transition-all duration-300 mt-2 font-medium hover:cursor-pointer"
             >
-              Create Account
-              <ArrowRight className="ml-2 h-4 w-4" />
+              {isLoading ? 'Creating....': 'Create Account'}
+              {isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>
 

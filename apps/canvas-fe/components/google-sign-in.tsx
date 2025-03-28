@@ -6,11 +6,11 @@ export default function GoogleButton() {
   return (
     <Button
       variant="outline"
-      onClick={() => signIn("google", { callbackUrl: "/" })}
+      onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
       className="w-full transition-all hover:bg-muted/40 hover:cursor-pointer"
     >
       <GoogleIcon/>
       Google
     </Button>
   );
-}
+} 

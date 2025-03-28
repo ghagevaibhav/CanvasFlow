@@ -5,7 +5,7 @@ const GithubButton = () => {
   return (
       <Button
         variant="outline"
-        onClick={() => signIn("github", { callbackUrl: "/" })}
+        onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
         className="w-full transition-all hover:bg-muted/40 hover:cursor-pointer"
       >
         <Github className="mr-2 h-4 w-4" />

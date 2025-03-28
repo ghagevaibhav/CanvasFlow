@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -18,16 +18,25 @@ import {
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import GithubButton from "@/components/github-sign-in";
-import GoogleButton from "@/components/google-sign-up";
+import GoogleButton from "@/components/google-sign-in";
 
 const SignIn = () => {
   const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+    
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const email = formData.get("email")?.toString() || '';
+    const password = formData.get("password")?.toString() || '';
+
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      console.log(error)
+      return;
+    }
 
     const result = await signIn("credentials", {
       email,
@@ -36,7 +45,10 @@ const SignIn = () => {
     });
 
     if (result?.ok) {
-      router.push("/");
+      router.push("/dashboard");
+    } else {
+      setError("Invalid email or password");
+      console.error("Sign-in failed:", result?.error);
     }
   };
 
@@ -140,6 +152,13 @@ const SignIn = () => {
           </div>
         </CardFooter>
       </Card>
+      {error && (
+        <div className="error-message">
+          {error === "OAuthAccountNotLinked"
+            ? "This email is already linked with another provider"
+            : "Authentication failed. Please try again."}
+        </div>
+      )}
     </div>
   );
 };

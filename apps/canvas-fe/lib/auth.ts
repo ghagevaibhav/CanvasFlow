@@ -1,121 +1,107 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { BACKEND_URL } from "@/config/config";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import axios from "axios";
+import { JWT } from "next-auth/jwt";
+import { NextAuthOptions, Session } from "next-auth";
 import prisma from "@repo/db/index";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 
-// import * as bcrypt from "bcrypt";
-
-interface Credentials {
-  username: string; // or whatever fields you expect
-  password: string;
-}
-
-interface SignInParams {
-  user: {
-      id: string;
-      name: string;
-      email: string;
-  } | null;
-  account: {
-      provider: string;
-      type: string;
-  };
-  profile: {
-      id: string;
-      name: string;
-      email: string;
-  };
-  email?: string;
-  credentials?: Credentials;
-}
-
-// fn to generate a random password
-// async function generateHashedRandomPassword(): Promise<string> {
-//   const charset =
-//     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-//   let password = "";
-//   for (let i = 0; i < 16; i++) {
-//     const randomIndex = Math.floor(Math.random() * charset.length);
-//     password += charset[randomIndex];
-//   }
-
-//   const saltRounds = 10;
-//   const hash = await bcrypt.hash(password, saltRounds);
-//   return hash;
-// }
-
-// interface UserData {
-//   id: string;
-//   name: string;
-//   password?: string | null;
-//   email: string;
-//   image: string | null;
-//   emailVerified: Date | null;
-// }
-export const authOptions = {
-  adapter: {
-    ...PrismaAdapter(prisma)
-  },
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "JohnDoe" },
+        email: { label: "email", type: "text" },
         password: { label: "Password", type: "password" },
       },
+
+      // from signin handlesubmit control reaches here and calls this function
       async authorize(credentials) {
-        // Check if credentials are provided
-        if (!credentials) {
-            console.error("No credentials provided");
-            return null; // Return null if credentials are not provided
+        // check if credentials are provided
+        if (!credentials?.email) {
+          throw new Error("Email is required");
         }
-
-        console.log("Credentials:", credentials);
-        const res = await fetch(`${BACKEND_URL}/user/signin`, {
-            method: "POST",
-            body: JSON.stringify(credentials),
-            headers: { "Content-Type": "application/json" },
-        });
-
-        const user = await res.json();
-        if (res.ok && user) {
-            return user; 
+        if (!credentials?.password) {
+          throw new Error("Password is required");
         }
-        return null;
+        try {
+          const response = await axios.post(
+            `${BACKEND_URL}/user/signin`,
+            {
+              email: credentials.email,
+              password: credentials.password,
+            },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+          const user = response.data; // access user data from response
+          console.log("response hai bhaisaab ", user);
+
+          if (!user) {
+            return null;
+          }
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        } catch (error) {
+          if (axios.isAxiosError(error)) {
+            throw new Error(
+              error.response?.data?.message || "Authentication failed"
+            );
+          }
+          throw new Error("Authentication failed");
+        }
       },
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_CLIENT_ID as string,
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: "/signin", // Redirect to signup page for sign in
-  },
   callbacks: {
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-      // if the user is already signed up, redirect to sign in page
-      if (url === baseUrl) {
-        return Promise.resolve("/signin"); // Redirect to sign in page
+    async jwt({ token, user }: { token: JWT; user?: any }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
-      return Promise.resolve(url);
+      return token;
     },
-    async signIn({ user, account, profile, email, credentials }: SignInParams) {
-      console.log("User:", user);
-      console.log("Account:", account);
-      console.log("Profile:", profile);
-      console.log("Email:", email);
-      console.log("Credentials:", credentials);
-      
-      // You can add your custom logic here, e.g., validating the user
-      return true; // Return true if sign-in is successful
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+      }
+      return session;
     },
   },
+  pages: {
+    signIn: "/signin",
+    error: "/signin",
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+  },
+  secret: process.env.NEXTAUTH_SECRET,
 };

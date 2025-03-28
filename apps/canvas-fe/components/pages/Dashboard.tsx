@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -6,8 +5,18 @@ import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Session } from 'next-auth';
 
-const Dashboard = () => {
+interface DashboardProps {
+  session: Session;
+}
+
+const Dashboard = ({session}: DashboardProps) => {
+
+  const user = session.user;
+  console.log("User Data ", user);
+  console.log("Session Data ", session);
+
   const createNewCanvas = () => {
     toast.success('Coming soon! This feature is under development.');
   };
