@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
-// import Canvas from "@/components/Canvas/Canvas";
 import { Quote, Star } from "lucide-react";
 import {
   Carousel,
@@ -13,6 +12,8 @@ import {
   CarouselItem,
   type CarouselApi
 } from "@/components/ui/carousel";
+// import DemoCanvas from '../canvas/demoCanvas';
+
 
 const Index = () => {
   // Testimonial data
@@ -57,8 +58,8 @@ const Index = () => {
   return (
     <Layout>
       <Hero />
-      <Features />
-      {/* <Canvas /> */}
+      <Features  />
+      {/* <DemoCanvas /> */}
       
       {/* Testimonials as auto-scrolling carousel */}
       <section className="py-20 md:py-32 bg-background relative overflow-hidden">

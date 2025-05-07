@@ -1,17 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State for dropdown
   const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Scroll effect
   useEffect(() => {
@@ -78,22 +83,69 @@ const Header = () => {
           ))}
         </nav>
 
-        <div className="flex items-center space-x-2">
-          <ThemeToggle />
-          <Link href="/signin">
-            <Button variant="outline" size="sm">
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/signup">
-            <Button size="sm">Sign Up</Button>
-          </Link>
-        </div>
+        {status === "unauthenticated" ? (
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <Link href="/signin">
+              <Button className="hover: cursor-pointer" variant="outline" size="sm">
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button className="hover: cursor-pointer" size="sm">Sign Up</Button>
+            </Link>
+          </div>
+        ) : (
+          <div
+            className="relative flex items-center space-x-2"
+            ref={dropdownRef}
+          >
+            <ThemeToggle />
+            <div
+              className="flex ml-2 items-center justify-center w-9 h-9 rounded-full bg-secondary text-foreground cursor-pointer hover:bg-secondary/80 transition-colors"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              {session?.user?.image ? (
+                <Image
+                  src={session.user.image}
+                  alt="User Avatar"
+                  width={36}
+                  height={36}
+                  className="w-full h-full rounded-full object-cover"
+                  priority
+                />
+              ) : (
+                <span className="text-sm font-medium">
+                  {session?.user?.name?.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+
+            {/* Dropdown Menu */}
+            <div
+              className={`absolute right-0 top-12 w-24 bg-background border rounded-md shadow-lg transition-all duration-200 ease-in-out ${
+                isDropdownOpen
+                  ? "opacity-100 translate-y-0"
+                  : "opacity-0 -translate-y-2 pointer-events-none"
+              }`}
+            >
+              <div className="p-1">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-sm px-3 py-1.5 h-auto"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Menu Btn */}
         <div className="flex items-center md:hidden space-x-2">
           <ThemeToggle />
-          <Button
+          <Button 
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
