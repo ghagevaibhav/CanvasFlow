@@ -1,5 +1,5 @@
 {
-  "name": "chat-room-app",
+  "name": "canvaflow",
   "private": true,
   "scripts": {
     "build": "turbo build",
