@@ -1,6 +1,9 @@
 import { BACKEND_URL } from "@/config/config";
 import axios from "axios";
 
+/**
+ * Represents different types of shapes that can be drawn on the canvas
+ */
 type Shape =
   | { type: "rect"; x: number; y: number; width: number; height: number }
   | { type: "circle"; centerX: number; centerY: number; radius: number }
@@ -12,6 +15,9 @@ type Shape =
       endY: number;
     };
 
+/**
+ * Singleton class to manage drawing functionality on the canvas
+ */
 class DrawSingleton {
   private static instance: DrawSingleton;
   private existingShapes: Shape[] = [];
@@ -23,6 +29,9 @@ class DrawSingleton {
 
   private constructor() {}
 
+  /**
+   * Gets the singleton instance of DrawSingleton
+   */
   public static getInstance() {
     if (!DrawSingleton.instance) {
       DrawSingleton.instance = new DrawSingleton();
@@ -30,12 +39,18 @@ class DrawSingleton {
     return DrawSingleton.instance;
   }
 
+  /**
+   * Initializes the drawing functionality on the canvas
+   * @param canvas - The HTML canvas element
+   * @param roomId - The ID of the room for collaboration
+   * @param socket - WebSocket connection for real-time updates
+   */
   public async initDraw(
     canvas: HTMLCanvasElement,
     roomId: string,
     socket: WebSocket
   ) {
-    this.socket = socket; // store socket
+    this.socket = socket;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
@@ -43,23 +58,23 @@ class DrawSingleton {
     this.ctx = canvas.getContext("2d");
     if (!this.ctx) return;
 
-    // handle ws messages
+    // Set up WebSocket message handler
     this.socket.onmessage = (event) => {
-      console.log("ws msg:", event.data); // log msg
+      console.log("ws msg:", event.data);
       const message = JSON.parse(event.data);
       if (message.type === "chat") {
         const parsedData = JSON.parse(message.message);
-        console.log("parsed msg:", parsedData); // log parsed msg
+        console.log("parsed msg:", parsedData);
         if (parsedData.shape) {
           this.existingShapes.push(parsedData.shape);
-          this.clearCanvas(canvas); // redraw canvas
+          this.clearCanvas(canvas);
         }
       }
     };
 
-    this.clearCanvas(canvas); // initial draw
+    this.clearCanvas(canvas);
 
-    // add event listeners
+    // Set up mouse event listeners
     canvas.addEventListener("mousedown", this.handleMouseDown.bind(this));
     canvas.addEventListener("mouseup", this.handleMouseUp.bind(this, roomId));
     canvas.addEventListener(
@@ -67,10 +82,10 @@ class DrawSingleton {
       this.handleMouseMove.bind(this, canvas)
     );
 
-    // cleanup listeners and close ws
+    // Return cleanup function
     return () => {
       if (this.socket) {
-        this.socket.close(); // close ws
+        this.socket.close();
       }
       canvas.removeEventListener("mousedown", this.handleMouseDown.bind(this));
       canvas.removeEventListener(
@@ -84,6 +99,10 @@ class DrawSingleton {
     };
   }
 
+  /**
+   * Clears the canvas and redraws all existing shapes
+   * @param canvas - The HTML canvas element to clear
+   */
   private clearCanvas(canvas: HTMLCanvasElement) {
     if (!this.ctx) return;
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -114,6 +133,10 @@ class DrawSingleton {
     });
   }
 
+  /**
+   * Fetches existing shapes from the server for the given room
+   * @param roomId - The ID of the room to fetch shapes from
+   */
   private async getExistingShapes(roomId: string) {
     const response = await axios.get(`${BACKEND_URL}/room/chats/${roomId}`);
     const messages = response.data.messages;
@@ -126,12 +149,21 @@ class DrawSingleton {
     return shapes;
   }
 
+  /**
+   * Handles mouse down event to start drawing
+   * @param e - Mouse event
+   */
   private handleMouseDown(e: MouseEvent) {
     this.clicked = true;
     this.startX = e.clientX;
     this.startY = e.clientY;
   }
 
+  /**
+   * Handles mouse up event to finish drawing and send shape to server
+   * @param roomId - The ID of the room
+   * @param e - Mouse event
+   */
   private handleMouseUp(roomId: string, e: MouseEvent) {
     this.clicked = false;
     const width = e.clientX - this.startX;
@@ -153,9 +185,14 @@ class DrawSingleton {
         })
       );
     }
-    this.clearCanvas(document.querySelector("canvas") as HTMLCanvasElement); // clear and redraw
+    this.clearCanvas(document.querySelector("canvas") as HTMLCanvasElement);
   }
 
+  /**
+   * Handles mouse move event to draw shape preview
+   * @param canvas - The HTML canvas element
+   * @param e - Mouse event
+   */
   private handleMouseMove(canvas: HTMLCanvasElement, e: MouseEvent) {
     if (this.clicked) {
       const width = e.clientX - this.startX;
@@ -169,6 +206,12 @@ class DrawSingleton {
   }
 }
 
+/**
+ * Initializes drawing functionality on the canvas
+ * @param canvas - The HTML canvas element
+ * @param roomId - The ID of the room for collaboration
+ * @param socket - WebSocket connection for real-time updates
+ */
 export default function initDraw(
   canvas: HTMLCanvasElement,
   roomId: string,
