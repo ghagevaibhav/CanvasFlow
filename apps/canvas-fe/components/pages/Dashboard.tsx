@@ -1,24 +1,23 @@
 "use client";
 
-import React from 'react';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { Session } from 'next-auth';
+import React from "react";
+import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { toast } from "sonner";
+import { Session } from "next-auth";
 
 interface DashboardProps {
   session: Session;
 }
 
-const Dashboard = ({session}: DashboardProps) => {
-
+const Dashboard = ({ session }: DashboardProps) => {
   const user = session.user;
   console.log("User Data ", user);
   console.log("Session Data ", session);
 
   const createNewCanvas = () => {
-    toast.success('Coming soon! This feature is under development.');
+    toast.success("Coming soon! This feature is under development.");
   };
 
   return (
@@ -28,7 +27,9 @@ const Dashboard = ({session}: DashboardProps) => {
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Your Canvases</h1>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Your Canvases
+              </h1>
               <p className="text-muted-foreground mt-1">
                 Create, manage, and collaborate on your projects
               </p>
@@ -49,8 +50,8 @@ const Dashboard = ({session}: DashboardProps) => {
             </div>
             <h3 className="text-xl font-medium mb-2">No canvases yet</h3>
             <p className="text-muted-foreground text-center max-w-md mb-6">
-              Create your first canvas to get started with CanvasFlow. 
-              You can create from scratch or use one of our templates.
+              Create your first canvas to get started with CanvasFlow. You can
+              create from scratch or use one of our templates.
             </p>
             <Button onClick={createNewCanvas}>Create New Canvas</Button>
           </div>
@@ -60,21 +61,27 @@ const Dashboard = ({session}: DashboardProps) => {
             {[
               {
                 title: "Collaboration Rooms",
-                description: "Create spaces where your team can work together in real-time.",
-                comingSoon: true
+                description:
+                  "Create spaces where your team can work together in real-time.",
+                comingSoon: true,
               },
               {
                 title: "Templates Gallery",
-                description: "Start your projects faster with our professionally designed templates.",
-                comingSoon: true
+                description:
+                  "Start your projects faster with our professionally designed templates.",
+                comingSoon: true,
               },
               {
                 title: "Advanced Export Options",
-                description: "Export your designs in multiple formats for any use case.",
-                comingSoon: true
-              }
+                description:
+                  "Export your designs in multiple formats for any use case.",
+                comingSoon: true,
+              },
             ].map((feature, index) => (
-              <div key={index} className="p-6 border rounded-lg bg-background hover:shadow-sm transition-shadow">
+              <div
+                key={index}
+                className="p-6 border rounded-lg bg-background hover:shadow-sm transition-shadow"
+              >
                 <h3 className="text-lg font-medium mb-2 flex items-center">
                   {feature.title}
                   {feature.comingSoon && (
@@ -83,7 +90,9 @@ const Dashboard = ({session}: DashboardProps) => {
                     </span>
                   )}
                 </h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+                <p className="text-muted-foreground text-sm">
+                  {feature.description}
+                </p>
               </div>
             ))}
           </div>

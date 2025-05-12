@@ -1,12 +1,20 @@
-
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { useTheme } from '@/components/ThemeProvider';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import React, { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { useTheme } from "@/components/ThemeProvider";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Pen,
   ArrowRight,
@@ -19,11 +27,13 @@ import {
   Download,
   Trash2,
   MousePointer,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface CanvasControlsProps {
-  tool: 'brush' | 'rectangle' | 'circle' | 'eraser' | 'move' | 'line';
-  setTool: (tool: 'brush' | 'rectangle' | 'circle' | 'eraser' | 'move' | 'line') => void;
+  tool: "brush" | "rectangle" | "circle" | "eraser" | "move" | "line";
+  setTool: (
+    tool: "brush" | "rectangle" | "circle" | "eraser" | "move" | "line"
+  ) => void;
   color: string;
   setColor: (color: string) => void;
   size: number;
@@ -48,30 +58,30 @@ const CanvasControls = ({
   onClear,
   onDownload,
   canUndo,
-  canRedo
+  canRedo,
 }: CanvasControlsProps) => {
   const { theme } = useTheme();
   const [showSizeSlider, setShowSizeSlider] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  
+
   // Basic color palette
   const colors = [
-    theme === 'dark' ? '#FFFFFF' : '#000000', // White/Black
-    '#FF3B30', // Red
-    '#5AC8FA', // Blue
-    '#4CD964', // Green
-    '#FF9500', // Orange
-    '#5856D6', // Purple
+    theme === "dark" ? "#FFFFFF" : "#000000", // White/Black
+    "#FF3B30", // Red
+    "#5AC8FA", // Blue
+    "#4CD964", // Green
+    "#FF9500", // Orange
+    "#5856D6", // Purple
   ];
 
   // Close slider when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        showSizeSlider && 
-        sliderRef.current && 
-        buttonRef.current && 
+        showSizeSlider &&
+        sliderRef.current &&
+        buttonRef.current &&
         !sliderRef.current.contains(event.target as Node) &&
         !buttonRef.current.contains(event.target as Node)
       ) {
@@ -79,9 +89,9 @@ const CanvasControls = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showSizeSlider]);
 
@@ -92,9 +102,9 @@ const CanvasControls = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={tool === 'move' ? 'secondary' : 'ghost'}
+              variant={tool === "move" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setTool('move')}
+              onClick={() => setTool("move")}
               className="h-8 w-8 rounded-md"
             >
               <MousePointer className="h-4 w-4" />
@@ -107,9 +117,9 @@ const CanvasControls = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={tool === 'brush' ? 'secondary' : 'ghost'}
+              variant={tool === "brush" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setTool('brush')}
+              onClick={() => setTool("brush")}
               className="h-8 w-8 rounded-md"
             >
               <Pen className="h-4 w-4" />
@@ -121,9 +131,9 @@ const CanvasControls = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={tool === 'line' ? 'secondary' : 'ghost'}
+              variant={tool === "line" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setTool('line')}
+              onClick={() => setTool("line")}
               className="h-8 w-8 rounded-md"
             >
               <ArrowRight className="h-4 w-4" />
@@ -135,9 +145,9 @@ const CanvasControls = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={tool === 'rectangle' ? 'secondary' : 'ghost'}
+              variant={tool === "rectangle" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setTool('rectangle')}
+              onClick={() => setTool("rectangle")}
               className="h-8 w-8 rounded-md"
             >
               <Square className="h-4 w-4" />
@@ -149,9 +159,9 @@ const CanvasControls = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={tool === 'circle' ? 'secondary' : 'ghost'}
+              variant={tool === "circle" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setTool('circle')}
+              onClick={() => setTool("circle")}
               className="h-8 w-8 rounded-md"
             >
               <Circle className="h-4 w-4" />
@@ -171,7 +181,7 @@ const CanvasControls = ({
             >
               <Plus className="h-4 w-4" />
               {showSizeSlider && (
-                <div 
+                <div
                   ref={sliderRef}
                   className="absolute left-full ml-3 bg-background border rounded-md p-3 shadow-md w-36 z-20"
                 >
@@ -194,9 +204,9 @@ const CanvasControls = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={tool === 'eraser' ? 'secondary' : 'ghost'}
+              variant={tool === "eraser" ? "secondary" : "ghost"}
               size="icon"
-              onClick={() => setTool('eraser')}
+              onClick={() => setTool("eraser")}
               className="h-8 w-8 rounded-md"
             >
               <Eraser className="h-4 w-4" />
@@ -213,7 +223,7 @@ const CanvasControls = ({
               size="icon"
               className="h-8 w-8 rounded-md flex items-center justify-center"
             >
-              <div 
+              <div
                 className="h-5 w-5 rounded-full border border-muted-foreground"
                 style={{ backgroundColor: color }}
               />
@@ -225,7 +235,7 @@ const CanvasControls = ({
                 <button
                   key={c}
                   className={`h-6 w-6 rounded-full ${
-                    color === c ? 'ring-1 ring-primary ring-offset-1' : ''
+                    color === c ? "ring-1 ring-primary ring-offset-1" : ""
                   } transition-transform hover:scale-110`}
                   style={{ backgroundColor: c }}
                   onClick={() => setColor(c)}
