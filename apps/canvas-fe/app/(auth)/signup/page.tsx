@@ -40,8 +40,8 @@ const SignUp = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('')
-    setIsLoading(true)
+    setError("");
+    setIsLoading(true);
 
     // if (!validatePassword(password)) {
     //   setError('Password must be at least 8 characters with a number and symbol');
@@ -50,27 +50,24 @@ const SignUp = () => {
     // }
 
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/user/signup`,
-        {
-          name,
-          email,
-          password,
-        },
-      );
+      const response = await axios.post(`${BACKEND_URL}/user/signup`, {
+        name,
+        email,
+        password,
+      });
 
       if (response.status === 201) {
-        const result = await signIn('credentials', {
+        const result = await signIn("credentials", {
           email,
           password,
           redirect: false,
         });
-  
+
         if (result?.ok) {
-          router.push('/dashboard');
-          toast.success('Account created successfully!');
+          router.push("/dashboard");
+          toast.success("Account created successfully!");
         } else {
-          throw new Error('Account created but login failed');
+          throw new Error("Account created but login failed");
         }
       }
     } catch (error) {
@@ -83,9 +80,8 @@ const SignUp = () => {
         setError("An unexpected error occurred.");
         toast.error("An unexpected error occurred.");
       }
-    }
-    finally{
-      setIsLoading(false)
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -200,7 +196,7 @@ const SignUp = () => {
               type="submit"
               className="w-full bg-black text-white dark:bg-white dark:text-black hover:bg-black/90 transition-all duration-300 mt-2 font-medium hover:cursor-pointer"
             >
-              {isLoading ? 'Creating....': 'Create Account'}
+              {isLoading ? "Creating...." : "Create Account"}
               {isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </form>

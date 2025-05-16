@@ -27,14 +27,14 @@ const SignIn = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    
+
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email")?.toString() || '';
-    const password = formData.get("password")?.toString() || '';
+    const email = formData.get("email")?.toString() || "";
+    const password = formData.get("password")?.toString() || "";
 
     if (!email || !password) {
       setError("Please fill in all fields");
-      console.log(error)
+      console.log(error);
       return;
     }
 

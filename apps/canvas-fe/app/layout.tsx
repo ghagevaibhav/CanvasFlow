@@ -1,4 +1,3 @@
-
 import { Metadata } from "next";
 import { Toaster } from "sonner";
 import { Toaster as Sonner } from "@/components/ui/sonner";
