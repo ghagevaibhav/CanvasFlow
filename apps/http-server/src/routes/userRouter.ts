@@ -1,3 +1,4 @@
+// import required dependencies
 import express from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -5,9 +6,12 @@ const { CreateUserSchema, SigninSchema } = await import("@repo/common/index");
 const { JWT_SECRET } = await import("@repo/backend-common/index");
 import prisma from "@repo/db/index";
 
+// initialize router
 const userRouter: express.Router = express.Router();
 
+// handle user signup
 userRouter.post("/signup", async (req, res) => {
+    // validate request body
     const parsedData = CreateUserSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.status(400).json({ message: "Invalid input data" });
@@ -32,6 +36,7 @@ userRouter.post("/signup", async (req, res) => {
             },
         });
 
+        // return user data without password
         res.status(201).json({
             id: user.id,
             email: user.email,
@@ -44,7 +49,10 @@ userRouter.post("/signup", async (req, res) => {
         return;
     }
 });
+
+// handle user signin
 userRouter.post("/signin", async (req, res) => {
+    // validate request body
     const parsedData = SigninSchema.safeParse(req.body);
     if (!parsedData.success) {
         console.error(parsedData.error);
@@ -55,6 +63,7 @@ userRouter.post("/signin", async (req, res) => {
     try {
         const { email, password } = parsedData.data;
 
+        // find user by email
         const user = await prisma.user.findUnique({
             where: { email: email },
         });
@@ -63,6 +72,7 @@ userRouter.post("/signin", async (req, res) => {
             return;
         }
 
+        // verify password
         const passwordMatch = await bcrypt.compare(
             password.toString(),
             user.password.toString()
@@ -74,6 +84,7 @@ userRouter.post("/signin", async (req, res) => {
             return;
         }
 
+        // return user data
         res.status(201).json({
             id: user.id,
             email: user.email,
@@ -87,6 +98,7 @@ userRouter.post("/signin", async (req, res) => {
     }
 });
 
+// handle user logout
 userRouter.post("/logout", async (req, res) => {
     res.clearCookie("token");
     res.json({ message: "Logged out successfully" });
