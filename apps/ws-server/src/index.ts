@@ -1,20 +1,26 @@
+// import required dependencies
 import { WebSocket, WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
 const { JWT_SECRET } = await import("@repo/backend-common/index");
 import prisma  from "@repo/db/index";
 
-// singleton websocket manager
+// singleton websocket manager class
 class WebSocketManager {
+  // static instance for singleton pattern
   private static instance: WebSocketManager;
+  // websocket server instance
   private wss: WebSocketServer;
+  // map to store user connections and their rooms
   private userMap: Map<string, { ws: WebSocket; rooms: Set<number> }>;
 
+  // private constructor for singleton pattern
   private constructor() {
     this.wss = new WebSocketServer({ port: 8080 });
     this.userMap = new Map();
     this.initializeWebSocket();
   }
 
+  // get singleton instance
   public static getInstance(): WebSocketManager {
     if (!WebSocketManager.instance) {
       WebSocketManager.instance = new WebSocketManager();
@@ -22,6 +28,7 @@ class WebSocketManager {
     return WebSocketManager.instance;
   }
 
+  // verify jwt token and return user id
   private checkUser(token: string): string | null {
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
@@ -35,10 +42,12 @@ class WebSocketManager {
     }
   }
 
+  // handle room joining logic
   private async handleJoinRoom(ws: WebSocket, userId: string, roomId: number) {
     try {
       if(!roomId || (roomId === null))
           return;
+      // check if room exists
       const room = await prisma.room.findUnique({
         where: { id: roomId },
       });
@@ -48,6 +57,7 @@ class WebSocketManager {
         return;
       }
 
+      // add room to user's room set
       const userState = this.userMap.get(userId);
       if (userState) {
         userState.rooms.add(roomId);
@@ -60,6 +70,7 @@ class WebSocketManager {
     }
   }
 
+  // handle room leaving logic
   private handleLeaveRoom(userId: string, roomId: number) {
     const userState = this.userMap.get(userId);
     if (userState) {
@@ -69,6 +80,7 @@ class WebSocketManager {
     return false;
   }
 
+  // handle chat message logic
   private async handleChat(
     ws: WebSocket,
     userId: string,
@@ -77,18 +89,20 @@ class WebSocketManager {
   ) {
     const userState = this.userMap.get(userId);
 
+    // check user authorization
     if (!userState) {
       ws.send(JSON.stringify({ error: "Unauthorized" }));
       return;
     }
 
+    // check if user is in the room
     if (!userState.rooms.has(roomId)) {
       ws.send(JSON.stringify({ error: "Not a member of this room" }));
       return;
     }
 
     try {
-      // store message in db
+      // store message in database
       await prisma.chat.create({
         data: {
           message,
@@ -97,7 +111,7 @@ class WebSocketManager {
         },
       });
 
-      // broadcast to room members
+      // prepare chat message for broadcasting
       const chatMessage = JSON.stringify({
         type: "chat",
         message,
@@ -105,6 +119,7 @@ class WebSocketManager {
         userId,
       });
 
+      // broadcast message to all users in the room
       this.userMap.forEach((state, uid) => {
         if (state.rooms.has(roomId)) {
           state.ws.send(chatMessage);
@@ -116,29 +131,34 @@ class WebSocketManager {
     }
   }
 
+  // initialize websocket server and handle connections
   private initializeWebSocket() {
     this.wss.on("connection", (ws: WebSocket, req: Request) => {
       console.log("New connection established");
 
+      // extract token from url
       const url = req.url;
       const queryParam = new URLSearchParams(url.split("?")[1]);
       const token = queryParam.get("token") || "";
       const userId = this.checkUser(token);
 
+      // handle unauthorized connections
       if (!userId) {
         ws.send(JSON.stringify({ error: "Unauthorized" }));
         ws.close();
         return;
       }
 
-      // init user state
+      // initialize user state
       this.userMap.set(userId, { ws, rooms: new Set() });
 
+      // handle incoming messages
       ws.on("message", async (data: string) => {
         try {
           const parsedData = JSON.parse(data);
           const roomId = parseInt(parsedData.roomId);
 
+          // handle different message types
           switch (parsedData.type) {
             case "join_room":
               await this.handleJoinRoom(ws, userId, roomId);
@@ -164,6 +184,7 @@ class WebSocketManager {
         }
       });
 
+      // handle connection close
       ws.on("close", () => {
         this.userMap.delete(userId);
       });
@@ -171,5 +192,5 @@ class WebSocketManager {
   }
 }
 
-// init the websocket manager
+// initialize websocket manager instance
 const wsManager = WebSocketManager.getInstance();
